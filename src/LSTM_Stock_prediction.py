@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,6 +6,10 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 import baostock as bs
+
+# Define the directory path
+save_dir = '../image/'
+os.makedirs(save_dir, exist_ok=True)
 
 
 # 生成交易信号
@@ -164,20 +169,20 @@ plt.ylabel("Close")
 plt.xlabel("Date")
 plt.title("Actual Close vs Predicted Close with Trading Signals")
 plt.legend()
-plt.savefig("Test_with_Signals.png")
+plt.savefig(save_dir + "Test_with_Signals.png")
 
 fig = plt.figure(dpi=240)
 ax_test = fig.add_subplot(111)
 ax_test.hist(re)
 ax_test.set_xlabel("Residual")
 ax_test.set_title("Residual Distribution")
-plt.savefig("Residual.png")
+plt.savefig(save_dir + "Residual.png")
 
 fig = plt.figure(dpi=240)
 ax_test = fig.add_subplot(111)
 ax_test.hist(relative_re)
 ax_test.set_title("Relative Residual Distribution")
-plt.savefig("RResidual.png")
+plt.savefig(save_dir + "RResidual.png")
 
 # %%
 # 调用交易策略和回测函数
