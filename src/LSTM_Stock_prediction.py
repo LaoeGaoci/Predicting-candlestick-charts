@@ -215,7 +215,9 @@ plt.savefig(save_dir + "LSTM_RResidual.png")
 
 fig = plt.figure(dpi=240)
 ax_test = fig.add_subplot(111)
-ax_test.plot(np.arange(1, len(history.history['val_loss']) + 1), history.history['val_loss'])
+ax_test.plot(
+    np.arange(1, len(history.history["val_loss"]) + 1), history.history["val_loss"]
+)
 ax_test.set_title("Loss")
 plt.savefig(save_dir + "LSTM_Loss.png")
 
