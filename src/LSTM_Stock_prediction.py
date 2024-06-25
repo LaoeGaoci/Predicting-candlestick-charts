@@ -121,7 +121,7 @@ validate_count = int((validate + train) * count)
 (train_y, validate_y, test_y) = np.array_split(ys, [train_count, validate_count])
 
 # 保存测试集原始数据
-test_data = data[validate_count + window_size:].copy()
+test_data = data[validate_count + window_size :].copy()
 # %%
 # 创建和拟合LSTM网络
 # model = Sequential()
@@ -141,12 +141,29 @@ test_data = data[validate_count + window_size:].copy()
 # 创建和拟合SVM.SVR模型
 _max_iter = 100
 losses = []
-model = SVR(kernel='poly', degree=2, gamma='scale', coef0=0.0, tol=0.0001, C=1.5, epsilon=0.13, shrinking=True,
-            cache_size=200, verbose=False, max_iter=-1)
+model = SVR(
+    kernel="poly",
+    degree=2,
+    gamma="scale",
+    coef0=0.0,
+    tol=0.0001,
+    C=1.5,
+    epsilon=0.13,
+    shrinking=True,
+    cache_size=200,
+    verbose=False,
+    max_iter=-1,
+)
 model.fit(train_x, train_y)
 # 使用 learning_curve 计算训练和验证的损失
 train_sizes, train_scores, validation_scores = learning_curve(
-    model, train_x, train_y, cv=5, scoring='neg_mean_squared_error', n_jobs=-1, train_sizes=np.linspace(0.1, 1.0, 10)
+    model,
+    train_x,
+    train_y,
+    cv=5,
+    scoring="neg_mean_squared_error",
+    n_jobs=-1,
+    train_sizes=np.linspace(0.1, 1.0, 10),
 )
 # %%
 # 使用测试集进行测试
@@ -233,11 +250,11 @@ plt.savefig(save_dir + "SVR_RResidual.png")
 train_scores_mean = -train_scores.mean(axis=1)
 validation_scores_mean = -validation_scores.mean(axis=1)
 plt.figure(dpi=240)
-plt.plot(train_sizes, train_scores_mean, label='Training loss')
-plt.plot(train_sizes, validation_scores_mean, label='Validation loss')
-plt.xlabel('Training set size')
-plt.ylabel('Loss (MSE)')
-plt.title('Learning Curve for SVR Model')
+plt.plot(train_sizes, train_scores_mean, label="Training loss")
+plt.plot(train_sizes, validation_scores_mean, label="Validation loss")
+plt.xlabel("Training set size")
+plt.ylabel("Loss (MSE)")
+plt.title("Learning Curve for SVR Model")
 plt.legend()
 plt.savefig(save_dir + "SVR_Loss.png")
 plt.show()
