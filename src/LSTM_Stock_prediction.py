@@ -7,8 +7,6 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM
 import baostock as bs
 from sklearn.svm import SVR
-from sklearn.model_selection import cross_val_score
-from sklearn.metrics import make_scorer, mean_squared_error
 from sklearn.model_selection import learning_curve
 
 # Define the directory path
@@ -124,6 +122,8 @@ validate_count = int((validate + train) * count)
 test_data = data[validate_count + window_size:].copy()
 # %%
 # 创建和拟合LSTM网络
+# 用哪个模型解注释哪个就ok
+
 # model = Sequential()
 # model.add(LSTM(units=50, return_sequences=True, input_shape=(train_x.shape[1], 1)))
 # model.add(LSTM(units=50))
@@ -138,7 +138,8 @@ test_data = data[validate_count + window_size:].copy()
 #     validation_data=(validate_x, validate_y),
 # )
 # %%
-# 创建和拟合SVM.SVR模型
+# 创建和拟合SVM.SVR模型并记录loss
+# 用哪个模型解注释哪个就ok
 _max_iter = 100
 losses = []
 model = SVR(kernel='poly', degree=2, gamma='scale', coef0=0.0, tol=0.0001, C=1.5, epsilon=0.13, shrinking=True,
@@ -171,7 +172,7 @@ print("RMSE: ", rmse)
 print("Residual STD: ", std_re)
 print("Relative MSE: ", relative_mse)
 print("Relative RMSE: ", relative_rmse)
-
+# %%
 # 可视化预测结果
 fig, ax = plt.subplots(dpi=240)
 ax.plot(test_data.index, test_data["Actual Close"], label="Actual Close", color="blue")
@@ -207,20 +208,25 @@ plt.ylabel("Close")
 plt.xlabel("Date")
 plt.title("Actual Close vs Predicted Close with Trading Signals")
 plt.legend()
-plt.savefig(save_dir + "SVR_predict.png")
+plt.savefig(save_dir + "SVR_predict.png")  # 注意这个地方的图片保存名称，如果要换模型了记得改动
 
+# %%
+# 这段代码就是按照时间顺序的残差分布
 fig = plt.figure(dpi=240)
 ax_test = fig.add_subplot(111)
 ax_test.plot(re)
 ax_test.set_xlabel("Residual")
 ax_test.set_title("Residual Distribution")
-plt.savefig(save_dir + "SVR_Residual.png")
+plt.savefig(save_dir + "SVR_Residual.png")  # 注意这个地方的图片保存名称，如果要换模型了记得改动
 
 fig = plt.figure(dpi=240)
 ax_test = fig.add_subplot(111)
 ax_test.plot(relative_re)
 ax_test.set_title("Relative Residual Distribution")
-plt.savefig(save_dir + "SVR_RResidual.png")
+plt.savefig(save_dir + "SVR_RResidual.png")  # 注意这个地方的图片保存名称，如果要换模型了记得改动
+
+# %%
+# 这段代码描绘的是loss函数的绘制可以根据图片名称区分
 
 # fig = plt.figure(dpi=240)
 # ax_test = fig.add_subplot(111)
