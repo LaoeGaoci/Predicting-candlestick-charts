@@ -9,35 +9,35 @@ import baostock as bs
 from sklearn.svm import SVR
 
 # Define the directory path
-save_dir = '../image/'
+save_dir = "../image/"
 os.makedirs(save_dir, exist_ok=True)
 
 
 # 生成交易信号
 def generate_signals(predictions, data):
     signals = pd.DataFrame(index=data.index)
-    signals['Signal'] = 0
+    signals["Signal"] = 0
     predictions = predictions.flatten()  # 将 predictions 转换为一维数组
     # .iloc 是一个整数位置（integer-location based）的索引器，用于通过位置选择数据，而不是通过标签。
     # [1:] 是一个切片操作，表示从索引 1 开始（包括索引 1）到最后一个元素的所有元素。
-    signals['Signal'].iloc[1:] = np.where(predictions[1:] > predictions[:-1], 1, -1)
-    return signals['Signal'].values  # 返回一维数组
+    signals["Signal"].iloc[1:] = np.where(predictions[1:] > predictions[:-1], 1, -1)
+    return signals["Signal"].values  # 返回一维数组
 
 
 # 回测函数
 def backtest_strategy(signals, data):
     positions = pd.DataFrame(index=data.index).fillna(0.0)
-    positions['Position'] = signals
+    positions["Position"] = signals
 
     # 计算对数回报率
-    data['close'] = data['Actual Close'].astype(float)  # 确保 'close' 列为浮点数
-    data['LogReturn'] = np.log(data['close'] / data['close'].shift(1))
+    data["close"] = data["Actual Close"].astype(float)  # 确保 'close' 列为浮点数
+    data["LogReturn"] = np.log(data["close"] / data["close"].shift(1))
 
     # 移除可能引入的 NaN 值
-    data = data.dropna(subset=['LogReturn'])
+    data = data.dropna(subset=["LogReturn"])
 
     # 根据持仓和对数回报率计算投资组合回报
-    portfolio = positions['Position'] * data['LogReturn']
+    portfolio = positions["Position"] * data["LogReturn"]
 
     # 计算累积对数回报率
     cumulative_log_returns = portfolio.cumsum()
@@ -77,7 +77,7 @@ validate = 0.2
 test = 1 - train - validate
 
 # 训练参数
-loss_function = 'mean_absolute_error'
+loss_function = "mean_absolute_error"
 epoch_count = 18
 optimizer = "adam"
 batch_size = 32
@@ -89,16 +89,16 @@ k_data = bs.query_history_k_data_plus(
     "date,open,high,low,close,volume",  # 获取的属性
     start_date="2018-1-01",  # 起始日期
     end_date="2023-12-31",  # 结束日期
-    frequency="d"  # 按天获取
+    frequency="d",  # 按天获取
 )
 df = k_data.get_data()
 
 # 数据预处理
-df['Actual Close'] = pd.to_numeric(df['close'], errors='coerce')  # 将收盘价转化为数字
-df['date'] = pd.to_datetime(df['date'])  # 将日期转化为可用格式
-df = df.sort_values(by='date')  # 按日期排序
-data = df[['date', 'Actual Close']]  # 提取日期与收盘价
-data.set_index('date', inplace=True)  # 将收盘价作为索引
+df["Actual Close"] = pd.to_numeric(df["close"], errors="coerce")  # 将收盘价转化为数字
+df["date"] = pd.to_datetime(df["date"])  # 将日期转化为可用格式
+df = df.sort_values(by="date")  # 按日期排序
+data = df[["date", "Actual Close"]]  # 提取日期与收盘价
+data.set_index("date", inplace=True)  # 将收盘价作为索引
 
 # 数据归一化
 scaler = MinMaxScaler(feature_range=(0, 1))
@@ -118,7 +118,7 @@ validate_count = int((validate + train) * count)
 (train_y, validate_y, test_y) = np.array_split(ys, [train_count, validate_count])
 
 # 保存测试集原始数据
-test_data = data[validate_count + window_size:].copy()
+test_data = data[validate_count + window_size :].copy()
 # %%
 # 创建和拟合LSTM网络
 model = Sequential()
@@ -126,8 +126,14 @@ model.add(LSTM(units=50, return_sequences=True, input_shape=(train_x.shape[1], 1
 model.add(LSTM(units=50))
 model.add(Dense(1))
 model.compile(loss=loss_function, optimizer=optimizer)
-model.fit(train_x, train_y, epochs=epoch_count, batch_size=batch_size, verbose=2,
-          validation_data=(validate_x, validate_y))
+model.fit(
+    train_x,
+    train_y,
+    epochs=epoch_count,
+    batch_size=batch_size,
+    verbose=2,
+    validation_data=(validate_x, validate_y),
+)
 # %%
 # # 创建和拟合SVM.SVR模型
 # model = SVR(kernel='poly', degree=2, gamma='scale', coef0=0.0, tol=0.0001, C=1.5, epsilon=0.13, shrinking=True,
@@ -138,11 +144,11 @@ model.fit(train_x, train_y, epochs=epoch_count, batch_size=batch_size, verbose=2
 predict_close = model.predict(test_x)
 predict_close = predict_close.reshape(-1, 1)
 predict_close = scaler.inverse_transform(predict_close)
-test_data['Predicted Close'] = predict_close
+test_data["Predicted Close"] = predict_close
 
 # 计算误差
-re = test_data['Predicted Close'] - test_data['Actual Close']
-relative_re = re / test_data['Actual Close']
+re = test_data["Predicted Close"] - test_data["Actual Close"]
+relative_re = re / test_data["Actual Close"]
 mse = re.pow(2).mean()
 rmse = np.sqrt(mse)
 std_re = np.std(re)
@@ -158,8 +164,10 @@ print("Relative RMSE: ", relative_rmse)
 
 # 可视化预测结果
 fig, ax = plt.subplots(dpi=240)
-ax.plot(test_data.index, test_data['Actual Close'], label="Actual Close", color='blue')
-ax.plot(test_data.index, test_data['Predicted Close'], label="Predicted Close", color='red')
+ax.plot(test_data.index, test_data["Actual Close"], label="Actual Close", color="blue")
+ax.plot(
+    test_data.index, test_data["Predicted Close"], label="Predicted Close", color="red"
+)
 
 # 将交易信号绘制成小柱状图
 LSTM_prediction = generate_signals(predict_close, test_data)
@@ -167,10 +175,22 @@ bar_width = 0.3  # 设置柱状图的宽度
 up_signal = np.where(LSTM_prediction == 1)[0]
 down_signal = np.where(LSTM_prediction == -1)[0]
 
-ax.bar(test_data.index[up_signal], test_data['Actual Close'].iloc[up_signal], color='green', width=bar_width,
-       label='Buy Signal', alpha=0.6)
-ax.bar(test_data.index[down_signal], test_data['Actual Close'].iloc[down_signal], color='red', width=bar_width,
-       label='Sell Signal', alpha=0.6)
+ax.bar(
+    test_data.index[up_signal],
+    test_data["Actual Close"].iloc[up_signal],
+    color="green",
+    width=bar_width,
+    label="Buy Signal",
+    alpha=0.6,
+)
+ax.bar(
+    test_data.index[down_signal],
+    test_data["Actual Close"].iloc[down_signal],
+    color="red",
+    width=bar_width,
+    label="Sell Signal",
+    alpha=0.6,
+)
 
 plt.ylim(8, 14)
 plt.ylabel("Close")
@@ -197,11 +217,13 @@ plt.savefig(save_dir + "RResidual.png")
 LSTM_return = backtest_strategy(LSTM_prediction, test_data)
 
 # 调用评估函数
-LSTM_total_return, LSTM_annualized_return, LSTM_sharpe_ratio, LSTM_max_drawdown = evaluate_strategy(LSTM_return)
+LSTM_total_return, LSTM_annualized_return, LSTM_sharpe_ratio, LSTM_max_drawdown = (
+    evaluate_strategy(LSTM_return)
+)
 
-print('Total Return: ', LSTM_total_return)
-print('Annualized Return: ', LSTM_annualized_return)
-print('Sharpe ratio: ', LSTM_sharpe_ratio)
-print('Max Drawdown: ', LSTM_max_drawdown)
+print("Total Return: ", LSTM_total_return)
+print("Annualized Return: ", LSTM_annualized_return)
+print("Sharpe ratio: ", LSTM_sharpe_ratio)
+print("Max Drawdown: ", LSTM_max_drawdown)
 
 bs.logout()
