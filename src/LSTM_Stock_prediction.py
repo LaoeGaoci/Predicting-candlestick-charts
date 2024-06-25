@@ -6,6 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 import baostock as bs
+from sklearn.svm import SVR
 
 # Define the directory path
 save_dir = '../image/'
@@ -128,8 +129,14 @@ model.compile(loss=loss_function, optimizer=optimizer)
 model.fit(train_x, train_y, epochs=epoch_count, batch_size=batch_size, verbose=2,
           validation_data=(validate_x, validate_y))
 # %%
+# # 创建和拟合SVM.SVR模型
+# model = SVR(kernel='poly', degree=2, gamma='scale', coef0=0.0, tol=0.0001, C=1.5, epsilon=0.13, shrinking=True,
+#             cache_size=200, verbose=True, max_iter=-1)
+# model.fit(train_x, train_y)
+# %%
 # 使用测试集进行测试
 predict_close = model.predict(test_x)
+predict_close = predict_close.reshape(-1, 1)
 predict_close = scaler.inverse_transform(predict_close)
 test_data['Predicted Close'] = predict_close
 
@@ -165,11 +172,12 @@ ax.bar(test_data.index[up_signal], test_data['Actual Close'].iloc[up_signal], co
 ax.bar(test_data.index[down_signal], test_data['Actual Close'].iloc[down_signal], color='red', width=bar_width,
        label='Sell Signal', alpha=0.6)
 
+plt.ylim(8, 14)
 plt.ylabel("Close")
 plt.xlabel("Date")
 plt.title("Actual Close vs Predicted Close with Trading Signals")
 plt.legend()
-plt.savefig(save_dir + "Test_with_Signals.png")
+plt.savefig(save_dir + "LSTM_predict.png")
 
 fig = plt.figure(dpi=240)
 ax_test = fig.add_subplot(111)
