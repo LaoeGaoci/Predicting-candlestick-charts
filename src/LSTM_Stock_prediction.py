@@ -78,7 +78,7 @@ test = 1 - train - validate
 
 # 训练参数
 loss_function = "mean_absolute_error"
-epoch_count = 18
+epoch_count = 90
 optimizer = "adam"
 batch_size = 32
 # %%
@@ -126,7 +126,7 @@ model.add(LSTM(units=50, return_sequences=True, input_shape=(train_x.shape[1], 1
 model.add(LSTM(units=50))
 model.add(Dense(1))
 model.compile(loss=loss_function, optimizer=optimizer)
-model.fit(
+history = model.fit(
     train_x,
     train_y,
     epochs=epoch_count,
@@ -141,6 +141,7 @@ model.fit(
 # model.fit(train_x, train_y)
 # %%
 # 使用测试集进行测试
+
 predict_close = model.predict(test_x)
 predict_close = predict_close.reshape(-1, 1)
 predict_close = scaler.inverse_transform(predict_close)
@@ -201,16 +202,22 @@ plt.savefig(save_dir + "LSTM_predict.png")
 
 fig = plt.figure(dpi=240)
 ax_test = fig.add_subplot(111)
-ax_test.hist(re)
+ax_test.plot(re)
 ax_test.set_xlabel("Residual")
 ax_test.set_title("Residual Distribution")
-plt.savefig(save_dir + "Residual.png")
+plt.savefig(save_dir + "LSTM_Residual.png")
 
 fig = plt.figure(dpi=240)
 ax_test = fig.add_subplot(111)
-ax_test.hist(relative_re)
+ax_test.plot(relative_re)
 ax_test.set_title("Relative Residual Distribution")
-plt.savefig(save_dir + "RResidual.png")
+plt.savefig(save_dir + "LSTM_RResidual.png")
+
+fig = plt.figure(dpi=240)
+ax_test = fig.add_subplot(111)
+ax_test.plot(np.arange(1, len(history.history['val_loss']) + 1), history.history['val_loss'])
+ax_test.set_title("Loss")
+plt.savefig(save_dir + "LSTM_Loss.png")
 
 # %%
 # 调用交易策略和回测函数
