@@ -7,6 +7,9 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM
 import baostock as bs
 from sklearn.svm import SVR
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import make_scorer, mean_squared_error
+from sklearn.model_selection import learning_curve
 
 # Define the directory path
 save_dir = "../image/"
@@ -118,27 +121,33 @@ validate_count = int((validate + train) * count)
 (train_y, validate_y, test_y) = np.array_split(ys, [train_count, validate_count])
 
 # 保存测试集原始数据
-test_data = data[validate_count + window_size :].copy()
+test_data = data[validate_count + window_size:].copy()
 # %%
 # 创建和拟合LSTM网络
-model = Sequential()
-model.add(LSTM(units=50, return_sequences=True, input_shape=(train_x.shape[1], 1)))
-model.add(LSTM(units=50))
-model.add(Dense(1))
-model.compile(loss=loss_function, optimizer=optimizer)
-history = model.fit(
-    train_x,
-    train_y,
-    epochs=epoch_count,
-    batch_size=batch_size,
-    verbose=2,
-    validation_data=(validate_x, validate_y),
-)
+# model = Sequential()
+# model.add(LSTM(units=50, return_sequences=True, input_shape=(train_x.shape[1], 1)))
+# model.add(LSTM(units=50))
+# model.add(Dense(1))
+# model.compile(loss=loss_function, optimizer=optimizer)
+# history = model.fit(
+#     train_x,
+#     train_y,
+#     epochs=epoch_count,
+#     batch_size=batch_size,
+#     verbose=2,
+#     validation_data=(validate_x, validate_y),
+# )
 # %%
-# # 创建和拟合SVM.SVR模型
-# model = SVR(kernel='poly', degree=2, gamma='scale', coef0=0.0, tol=0.0001, C=1.5, epsilon=0.13, shrinking=True,
-#             cache_size=200, verbose=True, max_iter=-1)
-# model.fit(train_x, train_y)
+# 创建和拟合SVM.SVR模型
+_max_iter = 100
+losses = []
+model = SVR(kernel='poly', degree=2, gamma='scale', coef0=0.0, tol=0.0001, C=1.5, epsilon=0.13, shrinking=True,
+            cache_size=200, verbose=False, max_iter=-1)
+model.fit(train_x, train_y)
+# 使用 learning_curve 计算训练和验证的损失
+train_sizes, train_scores, validation_scores = learning_curve(
+    model, train_x, train_y, cv=5, scoring='neg_mean_squared_error', n_jobs=-1, train_sizes=np.linspace(0.1, 1.0, 10)
+)
 # %%
 # 使用测试集进行测试
 
@@ -198,27 +207,40 @@ plt.ylabel("Close")
 plt.xlabel("Date")
 plt.title("Actual Close vs Predicted Close with Trading Signals")
 plt.legend()
-plt.savefig(save_dir + "LSTM_predict.png")
+plt.savefig(save_dir + "SVR_predict.png")
 
 fig = plt.figure(dpi=240)
 ax_test = fig.add_subplot(111)
 ax_test.plot(re)
 ax_test.set_xlabel("Residual")
 ax_test.set_title("Residual Distribution")
-plt.savefig(save_dir + "LSTM_Residual.png")
+plt.savefig(save_dir + "SVR_Residual.png")
 
 fig = plt.figure(dpi=240)
 ax_test = fig.add_subplot(111)
 ax_test.plot(relative_re)
 ax_test.set_title("Relative Residual Distribution")
-plt.savefig(save_dir + "LSTM_RResidual.png")
+plt.savefig(save_dir + "SVR_RResidual.png")
 
-fig = plt.figure(dpi=240)
-ax_test = fig.add_subplot(111)
-ax_test.plot(np.arange(1, len(history.history['val_loss']) + 1), history.history['val_loss'])
-ax_test.set_title("Loss")
-plt.savefig(save_dir + "LSTM_Loss.png")
+# fig = plt.figure(dpi=240)
+# ax_test = fig.add_subplot(111)
+# ax_test.plot(np.arange(1, len(history.history['val_loss']) + 1), history.history['val_loss'])
+# ax_test.set_title("Loss")
+# plt.savefig(save_dir + "LSTM_Loss.png")
 
+# 绘制学习曲线
+# 计算平均训练和验证损失
+train_scores_mean = -train_scores.mean(axis=1)
+validation_scores_mean = -validation_scores.mean(axis=1)
+plt.figure(dpi=240)
+plt.plot(train_sizes, train_scores_mean, label='Training loss')
+plt.plot(train_sizes, validation_scores_mean, label='Validation loss')
+plt.xlabel('Training set size')
+plt.ylabel('Loss (MSE)')
+plt.title('Learning Curve for SVR Model')
+plt.legend()
+plt.savefig(save_dir + "SVR_Loss.png")
+plt.show()
 # %%
 # 调用交易策略和回测函数
 LSTM_return = backtest_strategy(LSTM_prediction, test_data)
