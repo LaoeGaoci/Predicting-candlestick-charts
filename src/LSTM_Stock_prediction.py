@@ -119,7 +119,7 @@ validate_count = int((validate + train) * count)
 (train_y, validate_y, test_y) = np.array_split(ys, [train_count, validate_count])
 
 # 保存测试集原始数据
-test_data = data[validate_count + window_size:].copy()
+test_data = data[validate_count + window_size :].copy()
 # %%
 # 创建和拟合LSTM网络
 # 用哪个模型解注释哪个就ok
@@ -142,12 +142,29 @@ test_data = data[validate_count + window_size:].copy()
 # 用哪个模型解注释哪个就ok
 _max_iter = 100
 losses = []
-model = SVR(kernel='poly', degree=2, gamma='scale', coef0=0.0, tol=0.0001, C=1.5, epsilon=0.13, shrinking=True,
-            cache_size=200, verbose=False, max_iter=-1)
+model = SVR(
+    kernel="poly",
+    degree=2,
+    gamma="scale",
+    coef0=0.0,
+    tol=0.0001,
+    C=1.5,
+    epsilon=0.13,
+    shrinking=True,
+    cache_size=200,
+    verbose=False,
+    max_iter=-1,
+)
 model.fit(train_x, train_y)
 # 使用 learning_curve 计算训练和验证的损失
 train_sizes, train_scores, validation_scores = learning_curve(
-    model, train_x, train_y, cv=5, scoring='neg_mean_squared_error', n_jobs=-1, train_sizes=np.linspace(0.1, 1.0, 10)
+    model,
+    train_x,
+    train_y,
+    cv=5,
+    scoring="neg_mean_squared_error",
+    n_jobs=-1,
+    train_sizes=np.linspace(0.1, 1.0, 10),
 )
 # %%
 # 使用测试集进行测试
@@ -208,7 +225,9 @@ plt.ylabel("Close")
 plt.xlabel("Date")
 plt.title("Actual Close vs Predicted Close with Trading Signals")
 plt.legend()
-plt.savefig(save_dir + "SVR_predict.png")  # 注意这个地方的图片保存名称，如果要换模型了记得改动
+plt.savefig(
+    save_dir + "SVR_predict.png"
+)  # 注意这个地方的图片保存名称，如果要换模型了记得改动
 
 # %%
 # 这段代码就是按照时间顺序的残差分布
@@ -217,13 +236,17 @@ ax_test = fig.add_subplot(111)
 ax_test.plot(re)
 ax_test.set_xlabel("Residual")
 ax_test.set_title("Residual Distribution")
-plt.savefig(save_dir + "SVR_Residual.png")  # 注意这个地方的图片保存名称，如果要换模型了记得改动
+plt.savefig(
+    save_dir + "SVR_Residual.png"
+)  # 注意这个地方的图片保存名称，如果要换模型了记得改动
 
 fig = plt.figure(dpi=240)
 ax_test = fig.add_subplot(111)
 ax_test.plot(relative_re)
 ax_test.set_title("Relative Residual Distribution")
-plt.savefig(save_dir + "SVR_RResidual.png")  # 注意这个地方的图片保存名称，如果要换模型了记得改动
+plt.savefig(
+    save_dir + "SVR_RResidual.png"
+)  # 注意这个地方的图片保存名称，如果要换模型了记得改动
 
 # %%
 # 这段代码描绘的是loss函数的绘制可以根据图片名称区分
@@ -239,11 +262,11 @@ plt.savefig(save_dir + "SVR_RResidual.png")  # 注意这个地方的图片保存
 train_scores_mean = -train_scores.mean(axis=1)
 validation_scores_mean = -validation_scores.mean(axis=1)
 plt.figure(dpi=240)
-plt.plot(train_sizes, train_scores_mean, label='Training loss')
-plt.plot(train_sizes, validation_scores_mean, label='Validation loss')
-plt.xlabel('Training set size')
-plt.ylabel('Loss (MSE)')
-plt.title('Learning Curve for SVR Model')
+plt.plot(train_sizes, train_scores_mean, label="Training loss")
+plt.plot(train_sizes, validation_scores_mean, label="Validation loss")
+plt.xlabel("Training set size")
+plt.ylabel("Loss (MSE)")
+plt.title("Learning Curve for SVR Model")
 plt.legend()
 plt.savefig(save_dir + "SVR_Loss.png")
 plt.show()
